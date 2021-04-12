@@ -2,28 +2,44 @@ package pri.kevin;
 
 import org.apache.commons.cli.*;
 
+import java.util.Iterator;
 import java.util.List;
 
 /** Hello world! */
 public class App {
-  public static void main(String[] args) {
-    CommandLineParser parser = new DefaultParser();
-    Options options = getOptions();
-    HelpFormatter formatter = new HelpFormatter();
 
+  private static HelpFormatter formatter;
+  private static DirTools dirTools;
+
+  static {
+    formatter = new HelpFormatter();
+    dirTools = new DirTools();
+  }
+
+  public static void main(String[] args) {
+    Options options = getOptions();
+    if (args.length <= 0) {
+      helpMessage();
+      return;
+    }
+
+    CommandLineParser parser = new DefaultParser();
     try {
-      CommandLine cmd = parser.parse(options, args);
-      if (cmd.hasOption("p")) {
-        String p = cmd.getOptionValue("p");
-        System.out.println(p);
-      } else if (cmd.hasOption("o")) {
-        System.out.println(cmd.getOptionValue("o"));
-      }else {
-        formatter.printHelp("Shared Library Scan Tools", options);
+      CommandLine cmd = parser.parse(options, args, false);
+      if (cmd.hasOption('o') && cmd.hasOption('p')) {
+        dirTools.scanDirs(cmd.getOptionValue('p'));
+
+        System.out.println("App.main"+cmd.getOptionValue('o'));
+        System.out.println("App.main"+cmd.getOptionValue('p'));
+      } else {
+        helpMessage();
       }
 
-    } catch (ParseException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+    }finally{
+      helpMessage();
+      System.exit(1);
     }
   }
 
@@ -35,7 +51,7 @@ public class App {
   private static Options getOptions() {
     Options options = new Options();
     Option libPath = new Option("p", "lib-path", true, "Shared Library path");
-    libPath.setRequired(true);
+    libPath.setRequired(false);
     options.addOption(libPath);
     Option outputPath = new Option("o", "output-path", true, "Result Files output path");
     outputPath.setRequired(false);
@@ -45,5 +61,8 @@ public class App {
   }
 
   /** 打印帮助信息 */
-  private static void helpMessage() {}
+  private static void helpMessage() {
+    Options options = getOptions();
+    formatter.printHelp("Shared Library Scan Tools", options);
+  }
 }
